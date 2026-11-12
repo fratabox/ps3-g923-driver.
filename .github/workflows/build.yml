@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     timeout-minutes: 360
+    env:
+      PS3DEV: /usr/local/ps3dev
+      PSL1GHT: /usr/local/ps3dev
+      PS3DEV_BUILD_DIR: /tmp/ps3dev-build
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -24,13 +28,17 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/ps3dev/ps3dev.git "$RUNNER_TEMP/ps3dev-src"
           cd "$RUNNER_TEMP/ps3dev-src"
-          sudo ./prepare.sh
-          sudo ./build-all.sh
-          echo "PS3DEV=/usr/local/ps3dev" >> "$GITHUB_ENV"
-          echo "PSL1GHT=/usr/local/ps3dev" >> "$GITHUB_ENV"
-          echo "/usr/local/ps3dev/bin" >> "$GITHUB_PATH"
-          echo "/usr/local/ps3dev/ppu/bin" >> "$GITHUB_PATH"
-          echo "/usr/local/ps3dev/spu/bin" >> "$GITHUB_PATH"
+          mkdir -p "$PS3DEV"
+          sudo chown -R "$USER":"$USER" "$PS3DEV"
+          ./prepare.sh
+          ./build-all.sh
+          test -x "$PS3DEV/bin/ppu-gcc" || test -x "$PS3DEV/ppu/bin/ppu-gcc"
+
+      - name: Add PS3DEV tools to PATH
+        run: |
+          echo "$PS3DEV/bin" >> "$GITHUB_PATH"
+          echo "$PS3DEV/ppu/bin" >> "$GITHUB_PATH"
+          echo "$PS3DEV/spu/bin" >> "$GITHUB_PATH"
 
       - name: Build diagnostic SELF and PKG
         run: |
