@@ -1,0 +1,48 @@
+name: PS3 G923 build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Install PS3DEV prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake bison flex gcc libelf-dev make \
+            texinfo libncurses5-dev patch python3 python-is-python3 subversion wget \
+            zlib1g-dev libtool libtool-bin bzip2 libgmp-dev pkg-config g++ libssl-dev clang
+
+      - name: Build PS3DEV toolchain and SDK
+        run: |
+          git clone --depth 1 https://github.com/ps3dev/ps3dev.git "$RUNNER_TEMP/ps3dev-src"
+          cd "$RUNNER_TEMP/ps3dev-src"
+          sudo ./prepare.sh
+          sudo ./build-all.sh
+          echo "PS3DEV=/usr/local/ps3dev" >> "$GITHUB_ENV"
+          echo "PSL1GHT=/usr/local/ps3dev" >> "$GITHUB_ENV"
+          echo "/usr/local/ps3dev/bin" >> "$GITHUB_PATH"
+          echo "/usr/local/ps3dev/ppu/bin" >> "$GITHUB_PATH"
+          echo "/usr/local/ps3dev/spu/bin" >> "$GITHUB_PATH"
+
+      - name: Build diagnostic SELF and PKG
+        run: |
+          make clean
+          make
+          make pkg
+
+      - name: Upload build outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps3-g923-diagnostic
+          path: |
+            G923Diag.self
+            G923Diag.pkg
+          if-no-files-found: error
