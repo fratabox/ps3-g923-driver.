@@ -28,7 +28,7 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/ps3dev/ps3dev.git "$RUNNER_TEMP/ps3dev-src"
           cd "$RUNNER_TEMP/ps3dev-src"
-          mkdir -p "$PS3DEV"
+          sudo mkdir -p "$PS3DEV"
           sudo chown -R "$USER":"$USER" "$PS3DEV"
           ./prepare.sh
           ./build-all.sh
