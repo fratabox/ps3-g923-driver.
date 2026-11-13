@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
       PS3DEV: /usr/local/ps3dev
@@ -22,7 +22,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y autoconf automake bison flex gcc libelf-dev make \
             texinfo libncurses5-dev patch python3 python-is-python3 subversion wget \
-            zlib1g-dev libtool libtool-bin bzip2 libgmp-dev pkg-config g++ libssl-dev clang
+            zlib1g-dev libtool libtool-bin bzip2 libgmp3-dev pkg-config g++ libssl-dev clang
 
       - name: Build PS3DEV toolchain and SDK
         run: |
