@@ -31,8 +31,8 @@ pkg: $(TARGET:.self=.elf)
 	mkdir -p pkg/USRDIR
 	cp $(ICON0) pkg/ICON0.PNG
 	make_self_npdrm $< pkg/USRDIR/EBOOT.BIN $(CONTENTID)
-	python3 $(PS3DEV)/bin/sfo.py --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
-	python3 $(PS3DEV)/bin/pkg.py --contentid $(CONTENTID) pkg/ G923Diag.pkg
+	sfo --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
+	pkg --contentid $(CONTENTID) pkg/ G923Diag.pkg
 	rm -rf pkg
 
 clean:
