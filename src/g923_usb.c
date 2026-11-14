@@ -27,7 +27,9 @@ static s32 g923_device = -1;
 static s32 g923_control_pipe = -1;
 static s32 g923_endpoint_pipes[16];
 static unsigned int g923_endpoint_count;
-static FILE *g923_log_file;
+static int g923_usb_module_owned;
+static int g923_usb_initialized;
+static int g923_driver_registered;
 
 static void log_line(const char *message, int value)
 {
@@ -196,9 +198,18 @@ void g923_usb_stop(void)
     if (g923_device >= 0)
         g923_detach(g923_device);
 
-    usbUnregisterExtraLddEx(&g923_ops);
-    usbEnd();
-    sysModuleUnload(SYSMODULE_USB);
+    if (g923_driver_registered) {
+        usbUnregisterExtraLddEx(&g923_ops);
+        g923_driver_registered = 0;
+    }
+    if (g923_usb_initialized) {
+        usbEnd();
+        g923_usb_initialized = 0;
+    }
+    if (g923_usb_module_owned) {
+        sysModuleUnload(SYSMODULE_USB);
+        g923_usb_module_owned = 0;
+    }
     for (i = 0; i < 16; ++i)
         g923_endpoint_pipes[i] = -1;
     g923_endpoint_count = 0;
