@@ -1,6 +1,6 @@
 PREFIX := ppu
 TARGET := G923Diag.self
-TITLE := Logitech G923 PS3 Diagnostic
+TITLE := Logitech G923 PS3 USB Diagnostic
 APPID := G92300001
 CONTENTID := UP0001-$(APPID)_00-0000000000000000
 ICON0 := $(PS3DEV)/bin/ICON0.PNG
@@ -9,9 +9,9 @@ SFOXML := $(PS3DEV)/bin/sfo.xml
 CC := $(PREFIX)-gcc
 LD := $(PREFIX)-gcc
 CFLAGS := -Wall -Wextra -O2 -std=gnu99 -I$(PSL1GHT)/$(PREFIX)/include
-LDFLAGS := -L$(PSL1GHT)/$(PREFIX)/lib -lsysutil
+LDFLAGS := -L$(PSL1GHT)/$(PREFIX)/lib -lusb -lsysmodule -lsysutil
 
-SOURCES := src/main.c src/g923_protocol.c
+SOURCES := src/main.c src/g923_protocol.c src/g923_usb.c
 OBJECTS := $(SOURCES:.c=.o)
 
 .PHONY: all clean pkg
