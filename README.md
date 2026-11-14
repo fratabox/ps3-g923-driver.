@@ -2,40 +2,38 @@
 
 Proyecto homebrew para investigar la compatibilidad del Logitech G923 Xbox con PS3 (HEN).
 
-## Estado
+## Estado actual
 
-**Etapa inicial: esqueleto de protocolo y diagnóstico.** Todavía no es un driver de entrada para juegos y no implementa transferencia USB, enumeración, sys_usbd ni Force Feedback.
+La aplicación de diagnóstico ahora inicializa la biblioteca USB de PSL1GHT, registra un Logical Device Driver para el VID/PID observado y, cuando recibe el callback de conexión, solicita la configuración USB y enumera los descriptores de endpoint.
+
+**Esta etapa todavía no lee reportes de entrada ni envía el comando de inicialización del volante.** Tampoco implementa un dispositivo de entrada para juegos ni Force Feedback.
 
 ## Evidencia confirmada en PC
 
 - G923 Xbox detectado inicialmente como USB VID:PID `046D:C26D`.
-- Interfaz inicial observada: `FF/47/D0`, endpoints observados `0x01 OUT` y `0x81 IN`; el tipo exacto debe confirmarse con el descriptor completo.
+- Interfaz inicial observada: `FF/47/D0`, endpoints observados `0x01 OUT` y `0x81 IN`; el tipo exacto debe confirmarse con los descriptores completos.
 - Con G HUB cerrado, enviar `0F 00 01 01 42` al endpoint OUT `0x01` produjo calibración y el volante pasó a estar disponible en `joy.cpl`.
-- El cambio de PID, la topología posterior y el formato de los reportes aún deben confirmarse a partir del PCAP/descriptor. No se asumen en el código.
+- El cambio de PID, la topología posterior y el formato de los reportes aún deben confirmarse. No se asumen en el código.
 
-## Estructura
+## Diagnóstico en PS3
 
-- `src/main.c`: aplicación homebrew mínima para validar el entorno PSL1GHT.
-- `src/g923_protocol.c/.h`: constantes del protocolo observadas en PC.
-- `.github/workflows/build.yml`: compilación automatizada.
+La aplicación escribe un registro en:
 
-## Compilar
-
-Con PS3DEV/PSL1GHT instalado y las variables `PS3DEV` y `PSL1GHT` configuradas:
-
-```sh
-make
-make pkg
+```
+/dev_hdd0/tmp/G923Diag.log
 ```
 
-El paquete generado se llama `G923Diag.pkg`.
+El registro incluye el resultado de cargar el módulo USB, inicializar libusb, registrar el controlador VID/PID, conectar el dispositivo, establecer la configuración y enumerar endpoints (dirección, tipo, tamaño máximo, intervalo y resultado de apertura del pipe).
+
+La capa USB usa la biblioteca `libusb` de PSL1GHT y su registro de LDD específico por VID/PID. El código de transferencia permanece deliberadamente desactivado hasta confirmar el tipo y tamaño reales de los endpoints del G923.
 
 ## Próximas etapas
 
-1. Validar PCAP USBPcap y descriptores pre/post inicialización.
-2. Implementar enumeración y control USB mediante la API disponible en PSL1GHT/sys_usbd.
-3. Confirmar reportes de volante, pedales y botones.
-4. Exponer entrada compatible con juegos.
-5. Investigar Force Feedback por separado.
+1. Confirmar en consola que el LDD recibe el G923 y obtener los descriptores completos.
+2. Implementar transferencias OUT/IN según el tipo real de endpoint.
+3. Reproducir la inicialización observada en PC y validar la respuesta.
+4. Interpretar reportes de volante, pedales y botones.
+5. Exponer entrada compatible con juegos.
+6. Investigar Force Feedback por separado.
 
-No instalar ni probar en una consola principal hasta que el PKG y el manejo USB estén validados.
+No considerar esta versión un driver funcional hasta verificar lectura de reportes en hardware real.
